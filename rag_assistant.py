@@ -5,6 +5,7 @@ import faiss
 from sentence_transformers import SentenceTransformer
 from transformers import AutoModelForCausalLM, AutoTokenizer
 import pyttsx3
+from workflow_engine import BMADMethod, Evolve2Workflow
 
 from surrealdb_client import SurrealDBClient
 
@@ -12,20 +13,41 @@ from surrealdb_client import SurrealDBClient
 class LocalRAGAssistant:
     """Simple retrieval augmented generation assistant using Qwen."""
 
-    def __init__(self, model_path: str, embeddings_model: str = "all-MiniLM-L6-v2", db_client: Optional[SurrealDBClient] = None):
+    def __init__(
+        self,
+        model_path: str,
+        embeddings_model: str = "all-MiniLM-L6-v2",
+        db_client: Optional[SurrealDBClient] = None,
+        voice_name: Optional[str] = None,
+        use_bmad: bool = False,
+        workflow: Optional[Evolve2Workflow] = None,
+    ):
         self.tokenizer = AutoTokenizer.from_pretrained(model_path, local_files_only=True)
         self.model = AutoModelForCausalLM.from_pretrained(model_path, local_files_only=True)
         self.embedder = SentenceTransformer(embeddings_model)
         self.index = None
         self.documents: List[str] = []
         self.db_client = db_client
+        self.workflow = workflow if workflow else Evolve2Workflow()
+        self.bmad = BMADMethod() if use_bmad else None
 
-        # Text to speech engine for British accent
+        # Text to speech engine, optionally selecting a specific voice
         self.tts_engine = pyttsx3.init()
-        for voice in self.tts_engine.getProperty("voices"):
-            if "en-gb" in voice.id.lower():
-                self.tts_engine.setProperty("voice", voice.id)
-                break
+        voice_found = False
+        if voice_name:
+            for voice in self.tts_engine.getProperty("voices"):
+                if voice_name.lower() in voice.id.lower() or voice_name.lower() in voice.name.lower():
+                    self.tts_engine.setProperty("voice", voice.id)
+                    voice_found = True
+                    break
+        else:
+            for voice in self.tts_engine.getProperty("voices"):
+                if "en-gb" in voice.id.lower():
+                    self.tts_engine.setProperty("voice", voice.id)
+                    voice_found = True
+                    break
+        if not voice_found:
+            print("Requested voice not found; using default.")
 
     def build_index(self, docs: List[str]):
         """Create a simple FAISS index from a list of documents."""
@@ -39,6 +61,11 @@ class LocalRAGAssistant:
         """Return the model answer given retrieved context."""
         if self.index is None:
             raise ValueError("Index not built")
+
+        if self.bmad:
+            question = self.bmad.apply(question)
+        if self.workflow:
+            question = self.workflow.run(question)
 
         question_embedding = self.embedder.encode([question])
         _, indices = self.index.search(question_embedding, k=3)
@@ -61,7 +88,10 @@ class LocalRAGAssistant:
 if __name__ == "__main__":
     # Example usage with SurrealDB logging
     db = SurrealDBClient()
-    assistant = LocalRAGAssistant(model_path="Qwen/Qwen-7B-Chat", db_client=db)
+    voice = input("Voice name (blank for default): ")
+    assistant = LocalRAGAssistant(
+        model_path="Qwen/Qwen-7B-Chat", db_client=db, voice_name=voice or None
+    )
     docs = [
         "Qwen is an open-source large language model.",
         "Retrieval augmented generation can improve response accuracy.",
