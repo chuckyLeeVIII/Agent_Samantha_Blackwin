@@ -21,11 +21,14 @@ This project provides an experimental framework for building fully local AI agen
    python rag_assistant.py
    ```
    Ask a question and the assistant will respond aloud with a British accent.
+   To use a specific installed voice, pass the `voice_name` argument when
+   creating `LocalRAGAssistant`, e.g. `LocalRAGAssistant(model_path="Qwen/Qwen-7B-Chat", voice_name="lottie")`.
+   You can also enable the BMAD Method and Evolve 2 workflow with
+   `use_bmad=True` and a custom `Evolve2Workflow` instance.
 
 ## Notes
 
 - The text-to-speech voice is selected from voices installed on the host operating system. Use the `voice_name` argument to choose a specific voice. You may need to install an English (UK) voice for best results.
-
 
 ## SurrealDB logging
 
@@ -50,9 +53,6 @@ npm start
 
 The demo uses placeholders for backend calls. Connect it to your local Python assistant or Evolve 2 service as needed.
 
-The app starts with a dark color scheme. You can enable a simple theme editor by
-setting `allowThemeEditing` to `true` in `rn_app/config.json`. When enabled, an
-"Edit Theme" button lets you change the background and text colors at runtime.
 
 ## Building executables
 

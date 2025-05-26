@@ -5,6 +5,7 @@ import faiss
 from sentence_transformers import SentenceTransformer
 from transformers import AutoModelForCausalLM, AutoTokenizer
 import pyttsx3
+from workflow_engine import BMADMethod, Evolve2Workflow
 
 from surrealdb_client import SurrealDBClient
 from video_generator import RealTimeVideoGenerator
@@ -26,10 +27,7 @@ class LocalRAGAssistant:
         self.index = None
         self.documents: List[str] = []
         self.db_client = db_client
-        self.video_generator = video_generator
 
-        # Text to speech engine, optionally selecting a specific voice
-        self.tts_engine = pyttsx3.init()
         if voice_name:
             for voice in self.tts_engine.getProperty("voices"):
                 if voice_name.lower() in voice.id.lower() or voice_name.lower() in voice.name.lower():
@@ -39,7 +37,6 @@ class LocalRAGAssistant:
             for voice in self.tts_engine.getProperty("voices"):
                 if "en-gb" in voice.id.lower():
                     self.tts_engine.setProperty("voice", voice.id)
-                    break
 
     def build_index(self, docs: List[str]):
         """Create a simple FAISS index from a list of documents."""
@@ -53,6 +50,11 @@ class LocalRAGAssistant:
         """Return the model answer given retrieved context."""
         if self.index is None:
             raise ValueError("Index not built")
+
+        if self.bmad:
+            question = self.bmad.apply(question)
+        if self.workflow:
+            question = self.workflow.run(question)
 
         question_embedding = self.embedder.encode([question])
         _, indices = self.index.search(question_embedding, k=3)
@@ -77,7 +79,10 @@ class LocalRAGAssistant:
 if __name__ == "__main__":
     # Example usage with SurrealDB logging
     db = SurrealDBClient()
-    assistant = LocalRAGAssistant(model_path="Qwen/Qwen-7B-Chat", db_client=db)
+    voice = input("Voice name (blank for default): ")
+    assistant = LocalRAGAssistant(
+        model_path="Qwen/Qwen-7B-Chat", db_client=db, voice_name=voice or None
+    )
     docs = [
         "Qwen is an open-source large language model.",
         "Retrieval augmented generation can improve response accuracy.",
