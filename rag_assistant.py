@@ -1,21 +1,24 @@
 import os
-from typing import List
+from typing import List, Optional
 
 import faiss
 from sentence_transformers import SentenceTransformer
 from transformers import AutoModelForCausalLM, AutoTokenizer
 import pyttsx3
 
+from surrealdb_client import SurrealDBClient
+
 
 class LocalRAGAssistant:
     """Simple retrieval augmented generation assistant using Qwen."""
 
-    def __init__(self, model_path: str, embeddings_model: str = "all-MiniLM-L6-v2"):
+    def __init__(self, model_path: str, embeddings_model: str = "all-MiniLM-L6-v2", db_client: Optional[SurrealDBClient] = None):
         self.tokenizer = AutoTokenizer.from_pretrained(model_path, local_files_only=True)
         self.model = AutoModelForCausalLM.from_pretrained(model_path, local_files_only=True)
         self.embedder = SentenceTransformer(embeddings_model)
         self.index = None
         self.documents: List[str] = []
+        self.db_client = db_client
 
         # Text to speech engine for British accent
         self.tts_engine = pyttsx3.init()
@@ -45,6 +48,8 @@ class LocalRAGAssistant:
         inputs = self.tokenizer(prompt, return_tensors="pt")
         outputs = self.model.generate(**inputs, max_new_tokens=128)
         answer = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
+        if self.db_client:
+            self.db_client.log_conversation(question, answer)
         return answer
 
     def speak(self, text: str):
@@ -54,8 +59,9 @@ class LocalRAGAssistant:
 
 
 if __name__ == "__main__":
-    # Example usage
-    assistant = LocalRAGAssistant(model_path="Qwen/Qwen-7B-Chat")
+    # Example usage with SurrealDB logging
+    db = SurrealDBClient()
+    assistant = LocalRAGAssistant(model_path="Qwen/Qwen-7B-Chat", db_client=db)
     docs = [
         "Qwen is an open-source large language model.",
         "Retrieval augmented generation can improve response accuracy.",
