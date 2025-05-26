@@ -7,6 +7,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 import pyttsx3
 
 from surrealdb_client import SurrealDBClient
+from video_generator import RealTimeVideoGenerator
 
 
 class LocalRAGAssistant:
@@ -25,6 +26,7 @@ class LocalRAGAssistant:
         self.index = None
         self.documents: List[str] = []
         self.db_client = db_client
+        self.video_generator = video_generator
 
         # Text to speech engine, optionally selecting a specific voice
         self.tts_engine = pyttsx3.init()
@@ -62,6 +64,8 @@ class LocalRAGAssistant:
         answer = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
         if self.db_client:
             self.db_client.log_conversation(question, answer)
+        if self.video_generator:
+            self.video_generator.generate(answer)
         return answer
 
     def speak(self, text: str):
