@@ -12,7 +12,13 @@ from surrealdb_client import SurrealDBClient
 class LocalRAGAssistant:
     """Simple retrieval augmented generation assistant using Qwen."""
 
-    def __init__(self, model_path: str, embeddings_model: str = "all-MiniLM-L6-v2", db_client: Optional[SurrealDBClient] = None):
+    def __init__(
+        self,
+        model_path: str,
+        embeddings_model: str = "all-MiniLM-L6-v2",
+        db_client: Optional[SurrealDBClient] = None,
+        voice_name: Optional[str] = None,
+    ):
         self.tokenizer = AutoTokenizer.from_pretrained(model_path, local_files_only=True)
         self.model = AutoModelForCausalLM.from_pretrained(model_path, local_files_only=True)
         self.embedder = SentenceTransformer(embeddings_model)
@@ -20,12 +26,18 @@ class LocalRAGAssistant:
         self.documents: List[str] = []
         self.db_client = db_client
 
-        # Text to speech engine for British accent
+        # Text to speech engine, optionally selecting a specific voice
         self.tts_engine = pyttsx3.init()
-        for voice in self.tts_engine.getProperty("voices"):
-            if "en-gb" in voice.id.lower():
-                self.tts_engine.setProperty("voice", voice.id)
-                break
+        if voice_name:
+            for voice in self.tts_engine.getProperty("voices"):
+                if voice_name.lower() in voice.id.lower() or voice_name.lower() in voice.name.lower():
+                    self.tts_engine.setProperty("voice", voice.id)
+                    break
+        else:
+            for voice in self.tts_engine.getProperty("voices"):
+                if "en-gb" in voice.id.lower():
+                    self.tts_engine.setProperty("voice", voice.id)
+                    break
 
     def build_index(self, docs: List[str]):
         """Create a simple FAISS index from a list of documents."""
