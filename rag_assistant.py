@@ -8,6 +8,7 @@ import pyttsx3
 from workflow_engine import BMADMethod, Evolve2Workflow
 
 from surrealdb_client import SurrealDBClient
+from video_generator import RealTimeVideoGenerator
 
 
 class LocalRAGAssistant:
@@ -19,8 +20,6 @@ class LocalRAGAssistant:
         embeddings_model: str = "all-MiniLM-L6-v2",
         db_client: Optional[SurrealDBClient] = None,
         voice_name: Optional[str] = None,
-        use_bmad: bool = False,
-        workflow: Optional[Evolve2Workflow] = None,
     ):
         self.tokenizer = AutoTokenizer.from_pretrained(model_path, local_files_only=True)
         self.model = AutoModelForCausalLM.from_pretrained(model_path, local_files_only=True)
@@ -28,26 +27,16 @@ class LocalRAGAssistant:
         self.index = None
         self.documents: List[str] = []
         self.db_client = db_client
-        self.workflow = workflow if workflow else Evolve2Workflow()
-        self.bmad = BMADMethod() if use_bmad else None
 
-        # Text to speech engine, optionally selecting a specific voice
-        self.tts_engine = pyttsx3.init()
-        voice_found = False
         if voice_name:
             for voice in self.tts_engine.getProperty("voices"):
                 if voice_name.lower() in voice.id.lower() or voice_name.lower() in voice.name.lower():
                     self.tts_engine.setProperty("voice", voice.id)
-                    voice_found = True
                     break
         else:
             for voice in self.tts_engine.getProperty("voices"):
                 if "en-gb" in voice.id.lower():
                     self.tts_engine.setProperty("voice", voice.id)
-                    voice_found = True
-                    break
-        if not voice_found:
-            print("Requested voice not found; using default.")
 
     def build_index(self, docs: List[str]):
         """Create a simple FAISS index from a list of documents."""
@@ -77,6 +66,8 @@ class LocalRAGAssistant:
         answer = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
         if self.db_client:
             self.db_client.log_conversation(question, answer)
+        if self.video_generator:
+            self.video_generator.generate(answer)
         return answer
 
     def speak(self, text: str):

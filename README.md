@@ -6,8 +6,6 @@ This project provides an experimental framework for building fully local AI agen
 
 - Works completely offline. Models are expected to be available locally.
 - Simple FAISS index for document retrieval.
- - Text-to-speech output using `pyttsx3`. A British voice is selected by default,
-   but you can specify any installed voice.
 - Example script `rag_assistant.py` that demonstrates question answering over a small set of documents. Conversation logs can optionally be stored in SurrealDB.
 
 ## Usage
@@ -31,7 +29,6 @@ This project provides an experimental framework for building fully local AI agen
 ## Notes
 
 - The text-to-speech voice is selected from voices installed on the host operating system. Use the `voice_name` argument to choose a specific voice. You may need to install an English (UK) voice for best results.
-- This repository is provided as a minimal reference implementation. It does not include any video generation or real-time voice modulation components, which would require additional tooling.
 
 ## SurrealDB logging
 
@@ -56,9 +53,6 @@ npm start
 
 The demo uses placeholders for backend calls. Connect it to your local Python assistant or Evolve 2 service as needed.
 
-## BMAD Method and Evolve 2 integration
-
-`workflow_engine.py` provides minimal stubs for the **BMAD Method** and **Evolve 2** workflow engine. When creating `LocalRAGAssistant`, you can enable these components to preprocess input or orchestrate multi-step agent behaviors.
 
 ## Building executables
 
