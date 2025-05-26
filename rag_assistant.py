@@ -19,7 +19,6 @@ class LocalRAGAssistant:
         embeddings_model: str = "all-MiniLM-L6-v2",
         db_client: Optional[SurrealDBClient] = None,
         voice_name: Optional[str] = None,
-        video_generator: Optional[RealTimeVideoGenerator] = None,
     ):
         self.tokenizer = AutoTokenizer.from_pretrained(model_path, local_files_only=True)
         self.model = AutoModelForCausalLM.from_pretrained(model_path, local_files_only=True)

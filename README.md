@@ -6,10 +6,6 @@ This project provides an experimental framework for building fully local AI agen
 
 - Works completely offline. Models are expected to be available locally.
 - Simple FAISS index for document retrieval.
-- Text-to-speech output using `pyttsx3`. A British voice is selected by default,
-  but you can specify any installed voice.
-- Optional real-time video generation through `RealTimeVideoGenerator` (stub
-  implementation).
 - Example script `rag_assistant.py` that demonstrates question answering over a small set of documents. Conversation logs can optionally be stored in SurrealDB.
 
 ## Usage
@@ -25,15 +21,11 @@ This project provides an experimental framework for building fully local AI agen
    python rag_assistant.py
    ```
    Ask a question and the assistant will respond aloud with a British accent.
-    To use a specific installed voice, pass the `voice_name` argument when
-    creating `LocalRAGAssistant`, e.g. `LocalRAGAssistant(model_path="Qwen/Qwen-7B-Chat", voice_name="lottie")`.
-    To test video output, pass a `RealTimeVideoGenerator` instance:
-    `LocalRAGAssistant(model_path="Qwen/Qwen-7B-Chat", video_generator=RealTimeVideoGenerator())`.
 
 ## Notes
 
 - The text-to-speech voice is selected from voices installed on the host operating system. Use the `voice_name` argument to choose a specific voice. You may need to install an English (UK) voice for best results.
-- A simple `RealTimeVideoGenerator` stub is provided for experimenting with video responses. It prints a message but does not produce actual video.
+
 
 ## SurrealDB logging
 
@@ -57,6 +49,10 @@ npm start
 ```
 
 The demo uses placeholders for backend calls. Connect it to your local Python assistant or Evolve 2 service as needed.
+
+The app starts with a dark color scheme. You can enable a simple theme editor by
+setting `allowThemeEditing` to `true` in `rn_app/config.json`. When enabled, an
+"Edit Theme" button lets you change the background and text colors at runtime.
 
 ## Building executables
 
