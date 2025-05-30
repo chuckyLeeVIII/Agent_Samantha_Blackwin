@@ -6,7 +6,9 @@ This project provides an experimental framework for building fully local AI agen
 
 - Works completely offline. Models are expected to be available locally.
 - Simple FAISS index for document retrieval.
-- Text-to-speech output using `pyttsx3` (British accent configuration).
+- Text-to-speech output using `pyttsx3`. A British voice is selected by default,
+  but you can specify any installed voice. Call `list_available_voices()` to see
+  the voices detected on your system.
 - Example script `rag_assistant.py` that demonstrates question answering over a small set of documents. Conversation logs can optionally be stored in SurrealDB.
 
 ## Usage
@@ -22,10 +24,12 @@ This project provides an experimental framework for building fully local AI agen
    python rag_assistant.py
    ```
    Ask a question and the assistant will respond aloud with a British accent.
+   To use a specific installed voice, pass the `voice_name` argument when
+   creating `LocalRAGAssistant`, e.g. `LocalRAGAssistant(model_path="Qwen/Qwen-7B-Chat", voice_name="lottie")`.
 
 ## Notes
 
-- The text-to-speech voice is selected based on voices installed on the host operating system. You may need to install an English (UK) voice for best results.
+ - The text-to-speech voice is selected from voices installed on the host operating system. Use the `voice_name` argument to choose a specific voice. If the name isn't found, the assistant falls back to a British voice and prints a warning. You can inspect available names with `list_available_voices()`.
 - This repository is provided as a minimal reference implementation. It does not include any video generation or real-time voice modulation components, which would require additional tooling.
 
 ## SurrealDB logging

@@ -12,7 +12,27 @@ from surrealdb_client import SurrealDBClient
 class LocalRAGAssistant:
     """Simple retrieval augmented generation assistant using Qwen."""
 
-    def __init__(self, model_path: str, embeddings_model: str = "all-MiniLM-L6-v2", db_client: Optional[SurrealDBClient] = None):
+    def __init__(
+        self,
+        model_path: str,
+        embeddings_model: str = "all-MiniLM-L6-v2",
+        db_client: Optional[SurrealDBClient] = None,
+        voice_name: Optional[str] = None,
+    ):
+        """Create a local RAG assistant.
+
+        Parameters
+        ----------
+        model_path: str
+            Path to a locally available Qwen model.
+        embeddings_model: str, optional
+            SentenceTransformer model used for embeddings.
+        db_client: SurrealDBClient, optional
+            Optional database client for logging.
+        voice_name: str, optional
+            Name or id of a ``pyttsx3`` voice to use. If not supplied or not
+            found, a British English voice is selected when available.
+        """
         self.tokenizer = AutoTokenizer.from_pretrained(model_path, local_files_only=True)
         self.model = AutoModelForCausalLM.from_pretrained(model_path, local_files_only=True)
         self.embedder = SentenceTransformer(embeddings_model)
@@ -20,12 +40,24 @@ class LocalRAGAssistant:
         self.documents: List[str] = []
         self.db_client = db_client
 
-        # Text to speech engine for British accent
+        # Text to speech engine, optionally selecting a specific voice
         self.tts_engine = pyttsx3.init()
-        for voice in self.tts_engine.getProperty("voices"):
-            if "en-gb" in voice.id.lower():
-                self.tts_engine.setProperty("voice", voice.id)
-                break
+        self.voice_id = None
+        voices = self.tts_engine.getProperty("voices")
+        if voice_name:
+            for voice in voices:
+                if voice_name.lower() in voice.id.lower() or voice_name.lower() in voice.name.lower():
+                    self.tts_engine.setProperty("voice", voice.id)
+                    self.voice_id = voice.id
+                    break
+            if self.voice_id is None:
+                print(f"Voice '{voice_name}' not found. Using default British voice.")
+        if self.voice_id is None:
+            for voice in voices:
+                if "en-gb" in voice.id.lower():
+                    self.tts_engine.setProperty("voice", voice.id)
+                    self.voice_id = voice.id
+                    break
 
     def build_index(self, docs: List[str]):
         """Create a simple FAISS index from a list of documents."""
@@ -56,6 +88,10 @@ class LocalRAGAssistant:
         """Speak text using local TTS engine."""
         self.tts_engine.say(text)
         self.tts_engine.runAndWait()
+
+    def list_available_voices(self) -> List[str]:
+        """Return a list of available voice names."""
+        return [voice.id for voice in self.tts_engine.getProperty("voices")]
 
 
 if __name__ == "__main__":
