@@ -28,15 +28,6 @@ class LocalRAGAssistant:
         self.documents: List[str] = []
         self.db_client = db_client
 
-        if voice_name:
-            for voice in self.tts_engine.getProperty("voices"):
-                if voice_name.lower() in voice.id.lower() or voice_name.lower() in voice.name.lower():
-                    self.tts_engine.setProperty("voice", voice.id)
-                    break
-        else:
-            for voice in self.tts_engine.getProperty("voices"):
-                if "en-gb" in voice.id.lower():
-                    self.tts_engine.setProperty("voice", voice.id)
 
     def build_index(self, docs: List[str]):
         """Create a simple FAISS index from a list of documents."""
@@ -74,6 +65,10 @@ class LocalRAGAssistant:
         """Speak text using local TTS engine."""
         self.tts_engine.say(text)
         self.tts_engine.runAndWait()
+
+    def list_available_voices(self) -> List[str]:
+        """Return a list of available voice names."""
+        return [voice.id for voice in self.tts_engine.getProperty("voices")]
 
 
 if __name__ == "__main__":

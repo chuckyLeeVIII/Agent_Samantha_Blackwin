@@ -23,12 +23,6 @@ This project provides an experimental framework for building fully local AI agen
    Ask a question and the assistant will respond aloud with a British accent.
    To use a specific installed voice, pass the `voice_name` argument when
    creating `LocalRAGAssistant`, e.g. `LocalRAGAssistant(model_path="Qwen/Qwen-7B-Chat", voice_name="lottie")`.
-   You can also enable the BMAD Method and Evolve 2 workflow with
-   `use_bmad=True` and a custom `Evolve2Workflow` instance.
-
-## Notes
-
-- The text-to-speech voice is selected from voices installed on the host operating system. Use the `voice_name` argument to choose a specific voice. You may need to install an English (UK) voice for best results.
 
 ## SurrealDB logging
 
