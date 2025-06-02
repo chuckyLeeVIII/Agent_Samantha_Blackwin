@@ -20,13 +20,58 @@ class LocalRAGAssistant:
         embeddings_model: str = "all-MiniLM-L6-v2",
         db_client: Optional[SurrealDBClient] = None,
         voice_name: Optional[str] = None,
+        use_bmad: bool = False,
+        workflow: Optional[Evolve2Workflow] = None,
+        video_generator: Optional[RealTimeVideoGenerator] = None,
     ):
+        """Create a local RAG assistant.
+
+        Parameters
+        ----------
+        model_path : str
+            Path to a locally available Qwen model.
+        embeddings_model : str, optional
+            SentenceTransformer model used for embeddings.
+        db_client : SurrealDBClient, optional
+            Database client for logging conversation history.
+        voice_name : str, optional
+            Name of a ``pyttsx3`` voice to use. Falls back to a British
+            English voice if the name is not found.
+        use_bmad : bool, optional
+            Whether to enable the BMAD Method pipeline.
+        workflow : Evolve2Workflow, optional
+            Custom workflow to run on each input before querying.
+        video_generator : RealTimeVideoGenerator, optional
+            Optional video generator used to render answers.
+        """
         self.tokenizer = AutoTokenizer.from_pretrained(model_path, local_files_only=True)
         self.model = AutoModelForCausalLM.from_pretrained(model_path, local_files_only=True)
         self.embedder = SentenceTransformer(embeddings_model)
         self.index = None
         self.documents: List[str] = []
         self.db_client = db_client
+        self.workflow = workflow if workflow else Evolve2Workflow()
+        self.bmad = BMADMethod() if use_bmad else None
+        self.video_generator = video_generator
+
+        # Text to speech engine with optional voice selection
+        self.tts_engine = pyttsx3.init()
+        self.voice_id = None
+        voices = self.tts_engine.getProperty("voices")
+        if voice_name:
+            for voice in voices:
+                if voice_name.lower() in voice.id.lower() or voice_name.lower() in getattr(voice, "name", "").lower():
+                    self.tts_engine.setProperty("voice", voice.id)
+                    self.voice_id = voice.id
+                    break
+            if self.voice_id is None:
+                print(f"Voice '{voice_name}' not found. Using default British voice.")
+        if self.voice_id is None:
+            for voice in voices:
+                if "en-gb" in voice.id.lower():
+                    self.tts_engine.setProperty("voice", voice.id)
+                    self.voice_id = voice.id
+                    break
 
 
     def build_index(self, docs: List[str]):
@@ -75,8 +120,14 @@ if __name__ == "__main__":
     # Example usage with SurrealDB logging
     db = SurrealDBClient()
     voice = input("Voice name (blank for default): ")
+    workflow = Evolve2Workflow()
     assistant = LocalRAGAssistant(
-        model_path="Qwen/Qwen-7B-Chat", db_client=db, voice_name=voice or None
+        model_path="Qwen/Qwen-7B-Chat",
+        db_client=db,
+        voice_name=voice or None,
+        use_bmad=True,
+        workflow=workflow,
+        video_generator=RealTimeVideoGenerator(),
     )
     docs = [
         "Qwen is an open-source large language model.",

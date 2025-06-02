@@ -1,0 +1,4 @@
+faiss-cpu
+sentence-transformers
+transformers
+pyttsx3
