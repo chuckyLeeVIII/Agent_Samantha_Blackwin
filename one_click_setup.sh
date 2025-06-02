@@ -12,7 +12,7 @@ pip install --upgrade pip
 pip install -r requirements.txt
 
 # Add @reboot entry to current user's crontab if missing
-if ! crontab -l 2>/dev/null | grep -q "rag_assistant.py"; then
+if ! crontab -l 2>/dev/null | grep -q "# SamanthaAssistantAutorun"; then
     (crontab -l 2>/dev/null; echo "@reboot $BASE_DIR/venv/bin/python $BASE_DIR/rag_assistant.py") | crontab -
     echo "Added reboot entry to crontab"
 fi
