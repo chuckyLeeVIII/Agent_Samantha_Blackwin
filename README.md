@@ -6,15 +6,29 @@ This project provides an experimental framework for building fully local AI agen
 
 - Works completely offline. Models are expected to be available locally.
 - Simple FAISS index for document retrieval.
-- Example script `rag_assistant.py` that demonstrates question answering over a small set of documents. Conversation logs can optionally be stored in SurrealDB.
+- Text-to-speech output using `pyttsx3`. A British voice is selected by default,
+  but you can specify any installed voice with the `voice_name` argument. Call
+  `list_available_voices()` to see voices detected on your system.
+- Example script `rag_assistant.py` that demonstrates question answering over a
+  small set of documents. Conversation logs can optionally be stored in
+  SurrealDB.
+
+## One-click installation
+
+Run `one_click_setup.sh` on Linux/macOS or `one_click_setup.bat` on Windows to
+create a virtual environment, install dependencies, and register the assistant
+to start automatically whenever you log in. After running the script, the
+assistant launches immediately and will auto-start on reboot.
 
 ## Usage
 
 1. Download the desired Qwen model (for example `Qwen/Qwen-7B-Chat`) and place it in a local directory.
-2. Install dependencies:
+2. Install dependencies (or just run the one-click script):
    ```bash
-   pip install faiss-cpu sentence-transformers transformers pyttsx3
+   pip install -r requirements.txt
    ```
+   Alternatively, execute `./one_click_setup.sh` or `one_click_setup.bat` which
+   will install everything automatically.
 3. Prepare a set of text documents you want the assistant to search through.
 4. Run the example:
    ```bash
@@ -23,6 +37,8 @@ This project provides an experimental framework for building fully local AI agen
    Ask a question and the assistant will respond aloud with a British accent.
    To use a specific installed voice, pass the `voice_name` argument when
    creating `LocalRAGAssistant`, e.g. `LocalRAGAssistant(model_path="Qwen/Qwen-7B-Chat", voice_name="lottie")`.
+   You can also enable the BMAD Method and Evolve 2 workflow with
+   `use_bmad=True` and by passing a custom `Evolve2Workflow` instance.
 
 ## SurrealDB logging
 
@@ -46,6 +62,13 @@ npm start
 ```
 
 The demo uses placeholders for backend calls. Connect it to your local Python assistant or Evolve 2 service as needed.
+
+## BMAD Method and Evolve 2 integration
+
+`workflow_engine.py` includes minimal stubs for the **BMAD Method** and the
+**Evolve 2** workflow engine. Enable these components when creating
+`LocalRAGAssistant` to preprocess input or orchestrate multi-step agent
+behaviors.
 
 
 ## Building executables
