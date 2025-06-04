@@ -1,0 +1,13 @@
+{
+  "name": "samantha_rn",
+  "version": "0.1.0",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "start": "react-native start"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-native": "^0.73.0"
+  }
+}
